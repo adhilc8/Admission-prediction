@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KEAM College Admission Predictor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="page">
+    <header>
+      <p class="eyebrow">KERALA ENGINEERING ADMISSIONS</p>
+      <h1>KEAM College Admission Predictor</h1>
+      <p class="intro">Explore engineering options using official KEAM 2025 first-phase final last-rank data.</p>
+    </header>
+    <div class="notice">Historical guide only. A past closing rank does not guarantee a future allotment.</div>
+    <section class="panel">
+      <h2>Enter your details</h2>
+      <form method="post" action="/">
+        <label>KEAM rank<input type="number" name="rank" min="1" required value="{{ form.rank }}"></label>
+        <label>Reservation category<select name="category">{% for cat in categories %}<option value="{{ cat }}" {% if form.category == cat %}selected{% endif %}>{{ cat }}</option>{% endfor %}</select></label>
+        <label>Preferred course<select name="course">{% for item in courses %}<option value="{{ item }}" {% if form.course == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></label>
+        <label>College name contains (optional)<input type="text" name="college" value="{{ form.college }}" placeholder="e.g. College of Engineering"></label>
+        <label class="check"><input type="checkbox" name="near" {% if form.near %}checked{% endif %}> Also show options within 10% above my rank</label>
+        <button type="submit">Find matching options</button>
+      </form>
+      {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    </section>
+
+    {% if results is not none %}
+    <section class="results">
+      <div class="result-heading"><div><p class="eyebrow">YOUR RESULTS</p><h2>Options based on historical cutoff</h2></div><span class="count">{{ results|length }} matches</span></div>
+      {% if results %}
+      <div class="table-wrap"><table><thead><tr><th>Course</th><th>College</th><th>Code</th><th>Category</th><th>2025 closing rank</th><th>Comparison</th></tr></thead><tbody>
+      {% for row in results %}<tr><td>{{ row.course }}</td><td>{{ row.college_name }}</td><td>{{ row.college_code }}</td><td>{{ row.category }}</td><td>{{ row.closing_rank|int }}</td><td><span class="badge {% if row.status == 'Close to cutoff' %}near{% endif %}">{{ row.status }}</span></td></tr>{% endfor %}
+      </tbody></table></div>
+      {% else %}<p>No matches found. Try another course, category, or college search.</p>{% endif %}
+    </section>
+    {% endif %}
+    <details><summary>How to read these results</summary><p>A smaller KEAM rank is better. “Within 2025 cutoff” means your rank is numerically less than or equal to the category closing rank in the published 2025 first phase. The optional 10% range is only for exploration. Missing category ranks are omitted. Actual allotments depend on current-year ranks, options submitted, seats, reservation rules, and allotment phase.</p></details>
+    <footer>Source: CEE Kerala, KEAM 2025 Engineering First Phase Allotment, Last Rank Table (final), dated 21 July 2025. <a href="/download">Download the cutoff dataset</a>.</footer>
+  </main>
+</body>
+</html>
