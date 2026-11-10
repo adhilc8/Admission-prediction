@@ -3,42 +3,110 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101b35">
   <title>KEAM College Admission Predictor</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </head>
 <body>
   <main class="page">
-    <header>
-      <p class="eyebrow">KERALA ENGINEERING ADMISSIONS</p>
-      <h1>KEAM College Admission Predictor</h1>
-      <p class="intro">Explore engineering options using official KEAM 2025 first-phase final last-rank data.</p>
+    <nav class="topbar" aria-label="Site">
+      <a class="brand" href="/" aria-label="KEAM Match home">
+        <span class="brand-mark" aria-hidden="true">K</span>
+        <span>KEAM <span class="brand-light">MATCH</span></span>
+      </a>
+      <span class="edition"><span class="edition-dot" aria-hidden="true"></span>2025 DATA · FIRST PHASE</span>
+    </nav>
+
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>KERALA ENGINEERING ADMISSIONS</p>
+        <h1>Your rank is a<br><span>starting point.</span></h1>
+        <p class="intro">Plot a route through Kerala’s engineering colleges. Start with your KEAM rank, then explore the paths that open up.</p>
+        <div class="hero-note"><span class="note-icon" aria-hidden="true">↗</span><span>One search. A whole map of possibilities.</span></div>
+      </div>
+
+      <div class="rank-art" aria-hidden="true">
+        <div class="art-grid"></div>
+        <svg class="orbit-path" viewBox="0 0 460 300" fill="none" aria-hidden="true"><path d="M26 200C87 228 116 68 211 109C289 143 264 247 348 208C405 182 393 102 442 81" stroke="url(#route-color)" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 8"/><defs><linearGradient id="route-color" x1="26" y1="200" x2="442" y2="81" gradientUnits="userSpaceOnUse"><stop stop-color="#FF9B7A"/><stop offset=".5" stop-color="#E4FF86"/><stop offset="1" stop-color="#78E4DD"/></linearGradient></defs></svg>
+        <div class="art-orbit orbit-one"></div>
+        <div class="art-orbit orbit-two"></div>
+        <div class="art-sun"></div>
+        <span class="route-node node-one">01</span><span class="route-node node-two">02</span><span class="route-node node-three">03</span>
+        <div class="float-card rank-float"><span class="float-label">YOUR KEAM RANK</span><b id="hero-rank">{{ form.rank }}</b><small>your starting point <i>↗</i></small></div>
+        <div class="float-card destination-float"><span class="destination-icon">✳</span><span class="float-label">NEXT DESTINATION</span><b>Possibility</b><small>take a look around</small></div>
+        <div class="art-stamp"><span>FIELD</span><b>’25</b></div>
+        <div class="art-coordinate">KERALA<br>ENGINEERING MAP</div>
+      </div>
     </header>
-    <div class="notice">Historical guide only. A past closing rank does not guarantee a future allotment.</div>
-    <section class="panel">
-      <h2>Enter your details</h2>
-      <form method="post" action="/">
-        <label>KEAM rank<input type="number" name="rank" min="1" required value="{{ form.rank }}"></label>
-        <label>Reservation category<select name="category">{% for cat in categories %}<option value="{{ cat }}" {% if form.category == cat %}selected{% endif %}>{{ cat }}</option>{% endfor %}</select></label>
-        <label>Preferred course<select name="course">{% for item in courses %}<option value="{{ item }}" {% if form.course == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></label>
-        <label>College name contains (optional)<input type="text" name="college" value="{{ form.college }}" placeholder="e.g. College of Engineering"></label>
-        <label class="check"><input type="checkbox" name="near" {% if form.near %}checked{% endif %}> Also show options within 10% above my rank</label>
-        <button type="submit">Find matching options</button>
-      </form>
-      {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+    <div class="notice" role="note">
+      <span class="notice-mark" aria-hidden="true">i</span>
+      <span><strong>A guide, not a guarantee.</strong> Past closing ranks can help you explore; future allotments may change.</span>
+    </div>
+
+    <section class="finder-layout" aria-label="Admission search">
+      <section class="panel" aria-labelledby="form-title">
+        <div class="panel-heading">
+          <span class="step-number">01</span>
+          <div><p class="section-kicker">YOUR SEARCH</p><h2 id="form-title">Build your shortlist</h2></div>
+        </div>
+        <form method="post" action="/" id="predict-form">
+          <label class="field">KEAM rank
+            <input id="rank-input" type="number" name="rank" min="1" required value="{{ form.rank }}" placeholder="e.g. 10000" inputmode="numeric">
+            <span class="field-hint">Your rank appears here <span class="rank-preview" aria-live="polite">{{ form.rank }}</span></span>
+          </label>
+          <label class="field">Reservation category
+            <select name="category">{% for cat in categories %}<option value="{{ cat }}" {% if form.category == cat %}selected{% endif %}>{{ cat }}</option>{% endfor %}</select>
+          </label>
+          <label class="field field-wide">Preferred course
+            <select name="course">{% for item in courses %}<option value="{{ item }}" {% if form.course == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select>
+          </label>
+          <label class="field field-wide">College name <span class="optional">OPTIONAL</span>
+            <input type="text" name="college" value="{{ form.college }}" placeholder="Search by college name">
+          </label>
+          <label class="check field-wide">
+            <input type="checkbox" name="near" {% if form.near %}checked{% endif %}>
+            <span class="check-box" aria-hidden="true"></span>
+            <span>Include options up to 10% beyond my rank <small>A wider range for exploration</small></span>
+          </label>
+          <button type="submit" id="submit-button"><span>Find matching options</span><span class="button-arrow" aria-hidden="true">↗</span></button>
+        </form>
+        {% if error %}<p class="error" role="alert"><span aria-hidden="true">!</span>{{ error }}</p>{% endif %}
+      </section>
+
+      <aside class="side-card">
+        <div class="side-card-orb" aria-hidden="true"></div>
+        <p class="side-kicker">A BETTER PLACE TO START</p>
+        <h2>Small steps.<br><span>More possibilities.</span></h2>
+        <p class="side-copy">Compare courses and colleges against last year’s published closing ranks, then explore the options that fit your search.</p>
+        <div class="side-rule"></div>
+        <div class="side-foot"><span class="side-icon" aria-hidden="true">✳</span><span>Official 2025 first-phase data<br><b>CEE Kerala cutoff table</b></span></div>
+        <span class="side-index" aria-hidden="true">01 / EXPLORE</span>
+      </aside>
     </section>
 
     {% if results is not none %}
-    <section class="results">
-      <div class="result-heading"><div><p class="eyebrow">YOUR RESULTS</p><h2>Options based on historical cutoff</h2></div><span class="count">{{ results|length }} matches</span></div>
+    <section class="results" aria-labelledby="results-title">
+      <div class="result-heading">
+        <div class="result-title-wrap"><span class="step-number step-green">02</span><div><p class="section-kicker">YOUR RESULTS</p><h2 id="results-title">Options to explore</h2></div></div>
+        <span class="count"><strong>{{ results|length }}</strong> matching options</span>
+      </div>
       {% if results %}
       <div class="table-wrap"><table><thead><tr><th>Course</th><th>College</th><th>Code</th><th>Category</th><th>2025 closing rank</th><th>Comparison</th></tr></thead><tbody>
-      {% for row in results %}<tr><td>{{ row.course }}</td><td>{{ row.college_name }}</td><td>{{ row.college_code }}</td><td>{{ row.category }}</td><td>{{ row.closing_rank|int }}</td><td><span class="badge {% if row.status == 'Close to cutoff' %}near{% endif %}">{{ row.status }}</span></td></tr>{% endfor %}
+      {% for row in results %}<tr><td class="course-cell">{{ row.course }}</td><td class="college-cell">{{ row.college_name }}</td><td><span class="code-chip">{{ row.college_code }}</span></td><td>{{ row.category }}</td><td class="rank-cell">{{ row.closing_rank|int }}</td><td><span class="badge {% if row.status == 'Close to cutoff' %}near{% endif %}"><span class="badge-dot" aria-hidden="true"></span>{{ row.status }}</span></td></tr>{% endfor %}
       </tbody></table></div>
-      {% else %}<p>No matches found. Try another course, category, or college search.</p>{% endif %}
+      {% else %}<div class="empty-state"><span class="empty-icon" aria-hidden="true">⌕</span><p>No matches in this search yet.</p><span>Try another course, category, or college name.</span></div>{% endif %}
     </section>
     {% endif %}
-    <details><summary>How to read these results</summary><p>A smaller KEAM rank is better. “Within 2025 cutoff” means your rank is numerically less than or equal to the category closing rank in the published 2025 first phase. The optional 10% range is only for exploration. Missing category ranks are omitted. Actual allotments depend on current-year ranks, options submitted, seats, reservation rules, and allotment phase.</p></details>
-    <footer>Source: CEE Kerala, KEAM 2025 Engineering First Phase Allotment, Last Rank Table (final), dated 21 July 2025. <a href="/download">Download the cutoff dataset</a>.</footer>
+
+    <details class="guide">
+      <summary><span class="guide-icon" aria-hidden="true">?</span><span>How to read your results</span><span class="summary-plus" aria-hidden="true">+</span></summary>
+      <p>A smaller KEAM rank is better. “Within 2025 cutoff” means your rank is numerically less than or equal to the category closing rank in the published 2025 first phase. The optional 10% range is only for exploration. Missing category ranks are omitted. Actual allotments depend on current-year ranks, options submitted, seats, reservation rules, and allotment phase.</p>
+    </details>
+
+    <footer><span>Source: CEE Kerala · KEAM 2025 Engineering First Phase Allotment, Last Rank Table (final)</span><a href="/download">Download cutoff data <span aria-hidden="true">↗</span></a></footer>
   </main>
 </body>
 </html>
+
